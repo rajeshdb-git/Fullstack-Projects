@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="treatment-detail-page">
+    <article class="treatment-detail-main">
+        <div class="treatment-detail-image">
+            {% if treatment.image %}
+                <img src="{{ treatment.image.url }}" alt="{{ treatment.name }}">
+            {% else %}
+                <div class="treatment-detail-placeholder" aria-hidden="true">
+                    <i class="fa-solid fa-person-walking"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="treatment-detail-content">
+            <p class="treatment-detail-eyebrow">Physiotherapy service</p>
+            <h1>{{ treatment.name }}</h1>
+            {% if treatment.description %}
+                {% if faq_items %}
+                    {% if main_description %}
+                        <p>{{ main_description|linebreaksbr }}</p>
+                    {% endif %}
+                    <div class="treatment-faq">
+                        <h2>Frequently Asked Questions</h2>
+                        {% for faq in faq_items %}
+                            <div class="treatment-faq-item{% if forloop.first %} open{% endif %}">
+                                <button class="treatment-faq-question" type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                                    <span>Q: {{ faq.question }}</span>
+                                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                </button>
+                                <div class="treatment-faq-answer-wrap">
+                                    <p class="treatment-faq-answer">A: {{ faq.answer }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>{{ treatment.description|linebreaksbr }}</p>
+                {% endif %}
+            {% else %}
+                <p>Treatment details are being updated. Contact us to learn more about this service.</p>
+            {% endif %}
+        </div>
+    </article>
+
+    <aside class="treatment-detail-booking-card" aria-labelledby="treatment-booking-title">
+        <p class="treatment-detail-eyebrow">Your next step</p>
+        <h2 id="treatment-booking-title">Get help with {{ treatment.name }}</h2>
+        <p>Send an appointment request. A doctor will review your details and confirm an available date and time.</p>
+        <a href="#appointment-overlay" class="treatment-detail-cta open-appointment">
+            Request an appointment
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <div class="treatment-detail-booking-note">
+            <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+            <span>Your visit time is confirmed by the clinic.</span>
+        </div>
+    </aside>
+</section>
+{% endblock %}

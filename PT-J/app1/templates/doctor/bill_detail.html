@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20260927-4">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-catalog-page doctor-invoice-page">
+    <div class="doctor-invoice-actions no-print">
+        <a href="{% url 'doctor_booking_detail' bill.inquiry_id %}" class="doctor-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Patient details</a>
+        <button type="button" class="doctor-secondary-link" onclick="window.print()"><i class="fa-solid fa-print" aria-hidden="true"></i> Print / Save PDF</button>
+    </div>
+    <article class="doctor-invoice">
+        <header class="doctor-invoice-header">
+            <div>
+                <p class="doctor-eyebrow">Physio Whitefield</p>
+                <h1>Patient invoice</h1>
+                <p>Physiotherapy and rehabilitation</p>
+            </div>
+            <div class="doctor-invoice-number">
+                <strong>{{ bill.bill_number }}</strong>
+                <span>Issued {{ bill.created_at|date:'d M Y' }}</span>
+                <span class="doctor-status-badge status-{{ bill.status }}">{{ bill.get_status_display }}</span>
+            </div>
+        </header>
+        <section class="doctor-invoice-patient">
+            <h2>Bill to</h2>
+            <strong>{{ bill.inquiry.full_name }}</strong>
+            <span>{{ bill.inquiry.phone_number }}</span>
+            <span>{{ bill.inquiry.email }}</span>
+            {% if bill.inquiry.location %}<span>{{ bill.inquiry.location.name }}</span>{% endif %}
+        </section>
+        <table class="doctor-invoice-table">
+            <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+            <tbody><tr><td>{{ bill.service_description }}{% if bill.notes %}<small>{{ bill.notes }}</small>{% endif %}</td><td>{{ billing_currency }} {{ bill.amount|floatformat:2 }}</td></tr></tbody>
+            <tfoot><tr><th>Total due</th><td>{{ billing_currency }} {{ bill.amount|floatformat:2 }}</td></tr></tfoot>
+        </table>
+        <p class="doctor-invoice-note">Please quote invoice {{ bill.bill_number }} when contacting the clinic about this bill.</p>
+    </article>
+    <div class="doctor-invoice-actions no-print">
+        {% if whatsapp_url %}<a class="doctor-whatsapp-button" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Share bill by WhatsApp</a>{% endif %}
+        {% if bill.status == 'issued' %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_paid">
+                <button type="submit" class="doctor-submit">Mark as paid</button>
+            </form>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

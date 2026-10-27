@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20260927-1">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-login-page">
+    {% if messages %}
+        <div class="admin-login-notices" aria-live="polite">
+            {% for message in messages %}
+                <div class="admin-login-notice {{ message.tags }}" role="status">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="doctor-login-panel">
+        <div class="doctor-page-mark" aria-hidden="true">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <p class="doctor-eyebrow">Physio Whitefield · Secure access</p>
+        <h1>Admin sign in</h1>
+        {% if otp_stage %}
+            <p class="doctor-intro">Enter your email sign-in code to continue.</p>
+        {% else %}
+            <p class="doctor-intro">Enter your admin username and password. We will email you a one-time code.</p>
+        {% endif %}
+
+        <form method="post" class="doctor-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% if otp_stage %}
+                <input type="hidden" name="stage" value="otp">
+                <div class="doctor-field">
+                    <label for="id_otp">Email sign-in code</label>
+                    <input id="id_otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+                </div>
+            {% else %}
+                <div class="doctor-field">
+                    <label for="id_username">Username</label>
+                    <input id="id_username" name="username" type="text" autocomplete="username" required autofocus>
+                </div>
+                <div class="doctor-field">
+                    <label for="id_password">Password</label>
+                    <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+                </div>
+            {% endif %}
+            <button type="submit" class="doctor-submit">
+                {% if otp_stage %}Verify code{% else %}Continue{% endif %}
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

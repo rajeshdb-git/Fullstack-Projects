@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20261015-3">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-catalog-page doctor-whatsapp-page">
+    <header class="doctor-whatsapp-header">
+        <div>
+            <p class="doctor-eyebrow"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Patient communications</p>
+            <h1>WhatsApp inbox</h1>
+            <p>Find a conversation by phone number or search inside received messages.</p>
+        </div>
+        <a href="{% url 'doctor_bookings' %}" class="doctor-secondary-link"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Patient bookings</a>
+    </header>
+
+    <section class="doctor-whatsapp-panel" aria-label="WhatsApp conversations">
+        <div class="doctor-whatsapp-toolbar">
+            <div class="doctor-whatsapp-summary">
+                <strong>{{ conversation_count }}</strong>
+                <span>conversation{{ conversation_count|pluralize }}{% if search %} found for “{{ search }}”{% endif %}</span>
+            </div>
+            <form method="get" class="doctor-whatsapp-search" role="search">
+                <label class="visually-hidden" for="whatsapp-search">Search phone number or message</label>
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="whatsapp-search" type="search" name="q" value="{{ search }}" placeholder="Phone number or message text" autocomplete="off">
+                <button type="submit">Search</button>
+                {% if search %}<a href="{% url 'doctor_whatsapp_inbox' %}">Clear</a>{% endif %}
+            </form>
+        </div>
+
+        {% if search %}
+            <p class="doctor-whatsapp-search-help">Phone searches ignore spaces, +, brackets, dots, and hyphens. Message searches match text from the conversation history.</p>
+        {% endif %}
+
+        <div class="doctor-whatsapp-inbox-layout">
+            <nav class="doctor-whatsapp-conversation-list" aria-label="Conversation list">
+                {% for conversation in conversations %}
+                    <a class="doctor-whatsapp-conversation-link{% if selected_conversation.pk == conversation.pk %} is-active{% endif %}"
+                       href="?{% if search %}q={{ search|urlencode }}&{% endif %}conversation={{ conversation.pk }}&page={{ conversations.number }}"
+                       {% if selected_conversation.pk == conversation.pk %}aria-current="page"{% endif %}>
+                        <span class="doctor-whatsapp-contact-icon" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+                        <span class="doctor-whatsapp-list-copy">
+                            <span class="doctor-whatsapp-list-top"><strong>{{ conversation.phone_number }}</strong><time>{% if conversation.last_inbound_at %}{{ conversation.last_inbound_at|date:'d M, g:i A' }}{% endif %}</time></span>
+                            <span class="doctor-whatsapp-list-preview">{% if conversation.last_message_direction == 'outbound' %}You: {% endif %}{{ conversation.last_message_body|default:'No text message'|truncatechars:68 }}</span>
+                            <span class="doctor-whatsapp-list-count">{{ conversation.message_count }} message{{ conversation.message_count|pluralize }}</span>
+                        </span>
+                    </a>
+                {% empty %}
+                    <div class="doctor-whatsapp-list-empty">No conversations match this search.</div>
+                {% endfor %}
+            </nav>
+
+            {% if selected_conversation %}
+                <article class="doctor-whatsapp-thread">
+                    <header class="doctor-whatsapp-thread-header">
+                        <div class="doctor-whatsapp-contact-icon" aria-hidden="true"><i class="fa-regular fa-user"></i></div>
+                        <div class="doctor-whatsapp-contact">
+                            <a class="doctor-whatsapp-phone" href="tel:{{ selected_conversation.phone_number }}">{{ selected_conversation.phone_number }}</a>
+                            <span>{{ selected_conversation.message_count }} message{{ selected_conversation.message_count|pluralize }}</span>
+                        </div>
+                        <div class="doctor-whatsapp-last-seen">
+                            <span>Last incoming message</span>
+                            <time>{% if selected_conversation.last_inbound_at %}{{ selected_conversation.last_inbound_at|date:'d M Y, g:i A' }}{% else %}Unavailable{% endif %}</time>
+                        </div>
+                    </header>
+
+                    {% if selected_conversation.inquiry %}
+                        <div class="doctor-whatsapp-booking-match">
+                            <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                            Possible booking match:
+                            <a href="{% url 'doctor_booking_detail' selected_conversation.inquiry.pk %}">{{ selected_conversation.inquiry.booking_number }} · {{ selected_conversation.inquiry.full_name }}</a>
+                            <span>Matched by phone number; identity is unverified.</span>
+                        </div>
+                    {% endif %}
+
+                    <ol class="doctor-whatsapp-messages">
+                        {% for message in selected_conversation.messages.all %}
+                            <li class="doctor-whatsapp-message message-{{ message.direction }}">
+                                <div class="doctor-whatsapp-message-meta">
+                                    <strong>{{ message.get_direction_display|default:message.direction|title }}</strong>
+                                    <time>{% if message.wa_timestamp %}{{ message.wa_timestamp|date:'d M Y, g:i A' }}{% else %}{{ message.created_at|date:'d M Y, g:i A' }}{% endif %}</time>
+                                </div>
+                                <div class="doctor-whatsapp-message-body">
+                                    {% if message.body %}{{ message.body|linebreaksbr }}{% else %}<em>{{ message.message_type|default:'Non-text'|title }} message</em>{% endif %}
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="doctor-whatsapp-empty-message">No message history is available for this conversation.</li>
+                        {% endfor %}
+                    </ol>
+                </article>
+            {% else %}
+                <div class="doctor-whatsapp-empty-state">
+                    <span><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span>
+                    <h2>{% if search %}No matching conversations{% else %}Your inbox is quiet{% endif %}</h2>
+                    <p>{% if search %}Try another phone number or a different word from the message.{% else %}Incoming WhatsApp conversations will appear here when a patient messages your connected number.{% endif %}</p>
+                    {% if search %}<a href="{% url 'doctor_whatsapp_inbox' %}">Show all conversations</a>{% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if conversations.has_other_pages %}
+            <nav class="doctor-whatsapp-pagination" aria-label="WhatsApp inbox pages">
+                {% if conversations.has_previous %}<a href="?{% if search %}q={{ search|urlencode }}&{% endif %}page={{ conversations.previous_page_number }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Previous</a>{% else %}<span></span>{% endif %}
+                <span>Page {{ conversations.number }} of {{ conversations.paginator.num_pages }}</span>
+                {% if conversations.has_next %}<a href="?{% if search %}q={{ search|urlencode }}&{% endif %}page={{ conversations.next_page_number }}">Next <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% else %}<span></span>{% endif %}
+            </nav>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

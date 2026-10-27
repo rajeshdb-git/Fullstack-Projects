@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block style %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
+<link rel="stylesheet" href="{% static 'css/about.css' %}?v=20260926-2">
 {% endblock %}
 
 
@@ -16,11 +16,11 @@
 
     <!-- Doctor Image -->
    <div class="doctor-about-image">
-
+e
     <div class="doctor-image-wrapper">
 
         <img
-            src="{% static 'images/profile.png' %}"
+            src="{% static 'images/doctor.jpg' %}"
             alt="Dr. JEEVAN ND - Physiotherapist"
         >
 
@@ -383,102 +383,36 @@
 </section>
 
 
-<!-- =========================================================
-     SPECIALIZATIONS
-     ========================================================= -->
-
-<section class="specializations-section">
-
-    <div class="specializations-heading">
-
-        <h2>Our Specializations</h2>
-
-        <p>
-            We provide effective physiotherapy treatment
-            across different specializations based on
-            individual needs.
-        </p>
-
+<section class="about-treatments-section">
+    <div class="about-treatments-heading">
+        <h2>Our Treatments</h2>
+        <p>Explore the physiotherapy treatments currently offered by our clinic.</p>
     </div>
 
-
-    <div class="specializations-carousel">
-
-        <!-- Previous Button -->
-        <button
-            class="specialization-arrow specialization-prev"
-            id="specialization-prev"
-            type="button"
-        >
-
-            <i class="fa-solid fa-chevron-left"></i>
-
-        </button>
-
-
-        <!-- Cards -->
-        <div class="specializations-window">
-
-            <div
-                class="specializations-track"
-                id="specializations-track"
-            >
-
-                {% for item in specializations %}
-
-                <div class="specialization-card">
-
-                    <img
-                        src="{% static item.image %}"
-                        alt="{{ item.title }}"
-                        class="specialization-image"
-                    >
-
-                    <div class="specialization-content">
-
-                        <h3>
-                            {{ item.title }}
-                        </h3>
-
-                        <p>
-                            {{ item.description }}
-                        </p>
-
-                        <a href="#">
-                            Read More →
-                        </a>
-
-                    </div>
-
+    <div class="about-treatments-grid">
+        {% for treatment in treatments %}
+            <article class="about-treatment-card">
+                <a class="about-treatment-image" href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">
+                    {% if treatment.image %}
+                        <img src="{{ treatment.image.url }}" alt="{{ treatment.name }}" loading="lazy">
+                    {% else %}
+                        <span class="about-treatment-placeholder" aria-hidden="true">
+                            <i class="fa-solid fa-person-walking"></i>
+                        </span>
+                    {% endif %}
+                </a>
+                <div class="about-treatment-content">
+                    <h3><a href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">{{ treatment.name }}</a></h3>
+                    <a class="about-treatment-link" href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">
+                        View treatment
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </a>
                 </div>
-
-                {% endfor %}
-
-            </div>
-
-        </div>
-
-
-        <!-- Next Button -->
-        <button
-            class="specialization-arrow specialization-next"
-            id="specialization-next"
-            type="button"
-        >
-
-            <i class="fa-solid fa-chevron-right"></i>
-
-        </button>
-
+            </article>
+        {% empty %}
+            <p class="about-treatments-empty">Treatments will appear here when they are added.</p>
+        {% endfor %}
     </div>
-
-
-    <!-- Carousel Dots -->
-    <div
-        class="specialization-dots"
-        id="specialization-dots"
-    ></div>
-
 </section>
 
 
@@ -486,7 +420,6 @@
      JAVASCRIPT
      ========================================================= -->
 
-<script src="{% static 'js/specializations.js' %}"></script>
 <script src="{% static 'js/about.js' %}"></script>
 
 {% endblock %}

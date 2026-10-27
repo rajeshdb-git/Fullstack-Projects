@@ -1,0 +1,706 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20261015-3">
+{% endblock %}
+
+{% block content %}
+
+<section class="doctor-portal doctor-catalog-page">
+
+    <header class="doctor-catalog-header">
+
+        <div>
+            <p class="doctor-eyebrow">Clinic workspace <span class="doctor-workspace-date">{{ workspace_date|date:'l, j F Y' }}</span></p>
+            <h1>Run your clinic</h1>
+            <p class="doctor-intro">A clear view of today’s requests, appointments, and the services patients can book.</p>
+        </div>
+        <nav class="doctor-workspace-header-actions" aria-label="Workspace shortcuts">
+            <a href="{% url 'doctor_bookings' %}" class="doctor-workspace-primary"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Manage bookings</a>
+            <a href="{% url 'doctor_inquiries' %}" class="doctor-workspace-secondary"><i class="fa-regular fa-message" aria-hidden="true"></i> Contact enquiries</a>
+            <button type="button" class="doctor-workspace-secondary" id="updateDoctorBtn"><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Update clinic contact</button>
+        </nav>
+    </header>
+
+
+    {% if doctor_feedback %}
+        <div class="doctor-feedback" role="status" aria-live="polite">
+            {% for message in doctor_feedback %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="doctor-workspace-overview" aria-label="Clinic overview">
+        <div class="doctor-workspace-overview-heading">
+            <div>
+                <p class="doctor-eyebrow">Today at a glance</p>
+                <h2>Clinic pulse</h2>
+            </div>
+            <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Updated when this page loads</span>
+        </div>
+        <div class="doctor-workspace-stats">
+            <div class="doctor-workspace-stat stat-attention">
+                <span class="doctor-workspace-stat-icon"><i class="fa-solid fa-inbox" aria-hidden="true"></i></span>
+                <span class="doctor-workspace-stat-copy"><strong>{{ workspace_stats.needs_scheduling }}</strong><span>Needs scheduling</span><small>Requests waiting for a time</small></span>
+            </div>
+            <div class="doctor-workspace-stat stat-calendar">
+                <span class="doctor-workspace-stat-icon"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i></span>
+                <span class="doctor-workspace-stat-copy"><strong>{{ workspace_stats.upcoming_appointments }}</strong><span>Upcoming appointments</span><small>Scheduled from today onward</small></span>
+            </div>
+            <div class="doctor-workspace-stat stat-enquiry">
+                <span class="doctor-workspace-stat-icon"><i class="fa-regular fa-message" aria-hidden="true"></i></span>
+                <span class="doctor-workspace-stat-copy"><strong>{{ workspace_stats.new_enquiries }}</strong><span>New enquiries</span><small>Contact requests to review</small></span>
+            </div>
+            <div class="doctor-workspace-stat stat-catalog">
+                <span class="doctor-workspace-stat-icon"><i class="fa-solid fa-hand-holding-medical" aria-hidden="true"></i></span>
+                <span class="doctor-workspace-stat-copy"><strong>{{ workspace_stats.treatments }}</strong><span>Clinic treatments</span><small>Services available to patients</small></span>
+            </div>
+        </div>
+        <nav class="doctor-workspace-quick-links" aria-label="Clinic management actions">
+            <a href="{% url 'doctor_whatsapp_inbox' %}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span><strong>Open WhatsApp inbox</strong><small>Continue patient conversations in one place</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a href="#add-treatment"><i class="fa-solid fa-plus" aria-hidden="true"></i><span><strong>Add a treatment</strong><small>Create a service patients can request</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a href="#add-location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><strong>Add a clinic location</strong><small>Make another location available for bookings</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </nav>
+    </section>
+
+    <div class="doctor-catalog-grid" id="clinic-catalog">
+        <section class="doctor-management-section" id="add-treatment">
+            <div class="doctor-section-heading">
+
+                <span class="doctor-section-icon">
+                    <i class="fa-solid fa-hand-holding-medical"></i>
+                </span>
+
+                <div>
+                    <h2>Add treatment</h2>
+                    <p>Add its display name and image together.</p>
+                </div>
+
+            </div>
+
+            <form
+                method="post"
+                enctype="multipart/form-data"
+                class="doctor-form"
+            >
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="section"
+                    value="treatment"
+                >
+
+                {{ treatment_form.non_field_errors }}
+
+                {% for field in treatment_form %}
+
+                    <div class="doctor-field">
+
+                        {{ field.label_tag }}
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <small class="doctor-helptext">
+                                {{ field.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% if field.name == 'description' %}
+
+                            <div class="doctor-ai-controls">
+
+                                <button
+                                    type="button"
+                                    class="doctor-generate-description"
+                                    data-endpoint="{% url 'doctor_generate_treatment_description' %}"
+                                >
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    Generate draft
+                                </button>
+
+                                <small class="doctor-ai-status">
+                                    Uses the treatment name and selected image,
+                                    if provided. Review the draft before saving.
+                                </small>
+
+                            </div>
+
+                        {% endif %}
+
+                        {{ field.errors }}
+
+                    </div>
+
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="doctor-submit"
+                >
+                    Save treatment
+                </button>
+
+            </form>
+
+
+            <div class="doctor-record-list">
+
+                <h3>
+                    Current treatments
+                    <span>{{ treatments|length }}</span>
+                </h3>
+
+                <ul>
+
+                    {% for treatment in treatments %}
+
+                        <li>
+
+                            {% if treatment.image %}
+
+                                <img
+                                    src="{{ treatment.image.url }}"
+                                    alt=""
+                                    class="doctor-record-thumbnail"
+                                >
+
+                            {% else %}
+
+                                <span class="doctor-record-thumbnail doctor-record-placeholder">
+                                    <i class="fa-solid fa-image"></i>
+                                </span>
+
+                            {% endif %}
+
+                            <span class="doctor-record-name">
+
+                                <strong>
+                                    {{ treatment.name }}
+                                </strong>
+
+                                {% if treatment.description %}
+
+                                    <small>
+                                        {{ treatment.description|truncatechars:100 }}
+                                    </small>
+
+                                {% else %}
+
+                                    <small class="doctor-record-missing">
+                                        Treatment details needed
+                                    </small>
+
+                                {% endif %}
+
+                            </span>
+
+                            <a
+                                class="doctor-edit"
+                                href="?edit_treatment={{ treatment.id }}#treatment-details"
+                            >
+                                Update
+                            </a>
+
+                            <form
+                                method="post"
+                                class="doctor-record-delete-form"
+                                onsubmit="return confirm('Remove this treatment from the clinic catalog?');"
+                            >
+                                {% csrf_token %}
+
+                                <input
+                                    type="hidden"
+                                    name="section"
+                                    value="delete_treatment"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="treatment_id"
+                                    value="{{ treatment.id }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="doctor-delete"
+                                    aria-label="Delete treatment {{ treatment.name }}"
+                                >
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    <span>Delete</span>
+                                </button>
+
+                            </form>
+
+                        </li>
+
+                    {% empty %}
+
+                        <li class="doctor-record-empty">
+                            No treatments have been added.
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+
+            {% if edit_treatment and edit_treatment_form %}
+
+                <div
+                    class="doctor-edit-panel"
+                    id="treatment-details"
+                >
+
+                    <h3>Edit treatment information</h3>
+
+                    <p>
+                        Update the details shown to patients for
+                        {{ edit_treatment.name }}.
+                    </p>
+
+                    <form
+                        method="post"
+                        enctype="multipart/form-data"
+                        class="doctor-form"
+                    >
+
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="section"
+                            value="edit_treatment"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="treatment_id"
+                            value="{{ edit_treatment.id }}"
+                        >
+
+                        {{ edit_treatment_form.non_field_errors }}
+
+                        {% for field in edit_treatment_form %}
+
+                            <div class="doctor-field">
+
+                                {{ field.label_tag }}
+
+                                {{ field }}
+
+                                {% if field.help_text %}
+                                    <small class="doctor-helptext">
+                                        {{ field.help_text }}
+                                    </small>
+                                {% endif %}
+
+                                {% if field.name == 'description' %}
+
+                                    <div class="doctor-ai-controls">
+
+                                        <button
+                                            type="button"
+                                            class="doctor-generate-description"
+                                            data-endpoint="{% url 'doctor_generate_treatment_description' %}"
+                                        >
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            Generate draft
+                                        </button>
+
+                                        <small class="doctor-ai-status">
+                                            Uses the treatment name and selected
+                                            or saved image. Review the draft
+                                            before saving.
+                                        </small>
+
+                                    </div>
+
+                                {% endif %}
+
+                                {{ field.errors }}
+
+                            </div>
+
+                        {% endfor %}
+
+                        <div class="doctor-edit-actions">
+
+                            <button
+                                type="submit"
+                                class="doctor-submit"
+                            >
+                                Update treatment
+                            </button>
+
+                            <a
+                                href="{% url 'doctor_catalog' %}"
+                                class="doctor-cancel"
+                            >
+                                Cancel
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+        <section class="doctor-management-section" id="add-location">
+            <div class="doctor-section-heading">
+
+                <span class="doctor-section-icon doctor-location-icon">
+                    <i class="fa-solid fa-location-dot"></i>
+                </span>
+
+                <div>
+                    <h2>Add location</h2>
+                    <p>Keep clinic locations available for booking.</p>
+                </div>
+
+            </div>
+
+
+            <form
+                method="post"
+                class="doctor-form"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="section"
+                    value="location"
+                >
+
+                {{ location_form.non_field_errors }}
+
+                {% for field in location_form %}
+
+                    <div class="doctor-field">
+
+                        {{ field.label_tag }}
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <small class="doctor-helptext">
+                                {{ field.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {{ field.errors }}
+
+                    </div>
+
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="doctor-submit"
+                >
+                    Save location
+                </button>
+
+            </form>
+
+
+            <div class="doctor-record-list">
+
+                <h3>
+                    Current locations
+                    <span>{{ locations|length }}</span>
+                </h3>
+
+                <ul>
+
+                    {% for location in locations %}
+
+                        <li>
+
+                            <span
+                                class="doctor-location-dot"
+                                aria-hidden="true"
+                            >
+                                <i class="fa-solid fa-location-dot"></i>
+                            </span>
+
+                            <span class="doctor-record-name">
+                                {{ location.name }}
+                            </span>
+
+                            <a
+                                class="doctor-edit"
+                                href="?edit_location={{ location.id }}#location-details"
+                            >
+                                Update
+                            </a>
+
+                            <form
+                                method="post"
+                                class="doctor-record-delete-form"
+                                onsubmit="return confirm('Remove this location from the clinic catalog?');"
+                            >
+
+                                {% csrf_token %}
+
+                                <input
+                                    type="hidden"
+                                    name="section"
+                                    value="delete_location"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="location_id"
+                                    value="{{ location.id }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="doctor-delete"
+                                    aria-label="Delete location {{ location.name }}"
+                                >
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    <span>Delete</span>
+                                </button>
+
+                            </form>
+
+                        </li>
+
+                    {% empty %}
+
+                        <li class="doctor-record-empty">
+                            No locations have been added.
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+
+            {% if edit_location and edit_location_form %}
+
+                <div
+                    class="doctor-edit-panel"
+                    id="location-details"
+                >
+
+                    <h3>Update location</h3>
+
+                    <p>
+                        Change the location name used for patient bookings.
+                    </p>
+
+                    <form
+                        method="post"
+                        class="doctor-form"
+                    >
+
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="section"
+                            value="edit_location"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="location_id"
+                            value="{{ edit_location.id }}"
+                        >
+
+                        {{ edit_location_form.non_field_errors }}
+
+                        {% for field in edit_location_form %}
+
+                            <div class="doctor-field">
+
+                                {{ field.label_tag }}
+
+                                {{ field }}
+
+                                {{ field.errors }}
+
+                            </div>
+
+                        {% endfor %}
+
+                        <div class="doctor-edit-actions">
+
+                            <button
+                                type="submit"
+                                class="doctor-submit"
+                            >
+                                Update location
+                            </button>
+
+                            <a
+                                href="{% url 'doctor_catalog' %}"
+                                class="doctor-cancel"
+                            >
+                                Cancel
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+
+
+    <!-- Update Doctor Details Modal -->
+
+    <div
+        class="doctor-modal"
+        id="doctorDetailsModal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="doctor-modal-overlay"
+            id="doctorModalOverlay"
+        ></div>
+
+        <div
+            class="doctor-modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="doctorModalTitle"
+        >
+
+            <div class="doctor-modal-header">
+
+                <div>
+
+                    <span class="doctor-modal-icon">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </span>
+
+                    <div>
+
+                        <h2 id="doctorModalTitle">
+                            Update Doctor Details
+                        </h2>
+
+                        <p>
+                            Change your Gmail and contact number.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="doctor-modal-close"
+                    id="closeDoctorModal"
+                    aria-label="Close"
+                >
+                    &times;
+                </button>
+
+            </div>
+
+
+            <form
+                method="post"
+                action="{% url 'update_web_contacts' %}"
+                class="doctor-details-form"
+            >
+
+                {% csrf_token %}
+
+                <div class="doctor-field">
+
+                    <label for="doctorGmail">
+                        Gmail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="doctorGmail"
+                        name="gmail"
+                        value="{{ web_contact.gmail|default:'' }}"
+                        placeholder="Enter Gmail address"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="doctor-field">
+
+                    <label for="doctorMobile">
+                        Contact Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="doctorMobile"
+                        name="mobile_number"
+                        value="{{ web_contact.mobile_number|default:'' }}"
+                        placeholder="Enter contact number"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="doctor-modal-actions">
+
+                    <button
+                        type="button"
+                        class="doctor-modal-cancel"
+                        id="cancelDoctorModal"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="doctor-submit"
+                    >
+                        Update
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block appointment_feedback %}
+{% endblock %}
+
+
+{% block script %}
+<script src="{% static 'js/doctor.js' %}?v=20261001-2"></script>
+{% endblock %}

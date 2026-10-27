@@ -13,7 +13,7 @@
     <title>Physio_Whitefield</title>
 
     <link rel="stylesheet"
-          href="{% static 'css/base.css' %}">
+            href="{% static 'css/base.css' %}?v=20261013-1">
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -56,83 +56,47 @@
 
             <nav id="header_ryt">
 
-                <a href="/home/"
-                   class="header-a">
-                    HOME
-                </a>
-
-                <a href="/about/"
-                   class="header-a">
-                    ABOUT
-                </a>
-
-
-               <!-- SERVICES -->
-
-<div class="services">
-
-    <a href="#"
-       class="header-a">
-
-        SERVICES
-
-        <i class="fa-solid fa-chevron-down service-arrow"></i>
-
-    </a>
-
-
-    <div class="services-dropdown">
-
-        <a href="{% url 'service_page' 'knee-pain' %}">
-            Knee Pain
-        </a>
-
-        <a href="{% url 'service_page' 'neck-pain' %}">
-            Neck Pain
-        </a>
-
-        <a href="{% url 'service_page' 'shoulder-pain' %}">
-            Shoulder Pain
-        </a>
-
-        <a href="{% url 'service_page' 'back-pain' %}">
-            Back Pain
-        </a>
-
-        <a href="{% url 'service_page' 'stroke-rehab' %}">
-            Stroke Rehab
-        </a>
-
-        <a href="{% url 'all_conditions' %}">
-            All Conditions
-        </a>
-
-        <a href="{% url 'service_page' 'therapies-for-treatment' %}">
-            Therapies For Treatment
-        </a>
-
-    </div>
-
-</div>
-
-
-                <a href="/contact/"
-                   class="header-a">
-                    CONTACT
-                </a>
-
-
-                <!-- BOOK APPOINTMENT -->
-
-                <button class="book-button open-appointment">
-
-    <i class="fa-regular fa-calendar-check"></i>
-
-    <span>Book Appointment</span>
-
-    <i class="fa-solid fa-arrow-right"></i>
-
-</button>
+                {% if is_doctor_portal %}
+                    <a href="{% url 'doctor_catalog' %}" class="header-a">WORKSPACE</a>
+                    <a href="{% url 'doctor_bookings' %}" class="header-a">PATIENT BOOKINGS</a>
+                    <a href="{% url 'doctor_inquiries' %}" class="header-a">
+                        ENQUIRIES
+                        {% if new_contact_count %}
+                            <span class="header-count">{{ new_contact_count }}</span>
+                        {% endif %}
+                    </a>
+                    <form method="post" action="{% url 'doctor_logout' %}" class="header-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="header-a header-logout-button">
+                            <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                            SIGN OUT
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="/home/" class="header-a">HOME</a>
+                    <a href="/about/" class="header-a">ABOUT</a>
+                    <div class="services">
+                        <a href="#" class="header-a">
+                            SERVICES
+                            <i class="fa-solid fa-chevron-down service-arrow"></i>
+                        </a>
+                        <div class="services-dropdown">
+                            {% for treatment in nav_treatments %}
+                                <a href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">{{ treatment.name }}</a>
+                            {% empty %}
+                                <span class="services-empty">No treatments available</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{% url 'contact' %}" class="header-a">CONTACT</a>
+                    <a href="{% url 'booking_status' %}" class="header-a">BOOKING STATUS</a>
+                    
+                    <a href="{% url 'appointment' %}" class="book-button open-appointment">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <span>Book Appointment</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                {% endif %}
 
             </nav>
 
@@ -155,6 +119,8 @@
     </main>
 
 
+
+    {% if not is_doctor_portal %}
 
     <!-- =========================
          FOOTER
@@ -183,19 +149,18 @@
 
                 <div class="footer-social">
 
-                    <a href="#" aria-label="Twitter">
-                        <i class="fa-brands fa-x-twitter"></i>
+                    <a href="https://www.linkedin.com/in/dr-jeevan-n-d-pt-5853a4357?utm_source=share_via&utm_content=profile&utm_medium=member_android" aria-label="linkedin">
+                       <i class="fa-brands fa-linkedin"></i>
                     </a>
-
-                    <a href="#" aria-label="WhatsApp">
+                    <a href="https://wa.me/{{ web_contact.mobile_number }}?text=Hello" aria-label="WhatsApp">
                         <i class="fa-brands fa-whatsapp"></i>
                     </a>
 
-                    <a href="#" aria-label="Instagram">
+                    <a href="https://www.instagram.com/physio__whitefield?stkn=ZWIyeHIwZHR0N3g5" aria-label="Instagram">
                         <i class="fa-brands fa-instagram"></i>
                     </a>
 
-                    <a href="#" aria-label="Email">
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ web_contact.gmail }}" aria-label="Email">
                         <i class="fa-regular fa-envelope"></i>
                     </a>
 
@@ -208,15 +173,22 @@
 
             <div class="footer-column">
 
-                <h3>Quick Links</h3>
+    <h3>Quick Links</h3>
 
                 <a href="/home/">Home</a>
 
                 <a href="/about/">About</a>
 
-                <a href="/contact/">Contact</a>
+                <a href="{% url 'contact' %}">Contact</a>
 
-                <a href="/appointment/">Book Appointment</a>
+                <a href="{% url 'appointment' %}">Book Appointment</a>
+
+                <a href="{% url 'booking_status' %}">Booking Status</a>
+
+                <a href="{% url 'doctor_login' %}">
+                    <i class="fa-solid fa-lock"></i>
+                    Staff Login
+                </a>
 
             </div>
 
@@ -227,15 +199,11 @@
 
                 <h3>Services</h3>
 
-                <a href="#">Knee Pain</a>
-
-                <a href="#">Neck Pain</a>
-
-                <a href="#">Back Pain</a>
-
-                <a href="#">Stroke Rehab</a>
-
-                <a href="#">All Conditions</a>
+                {% for treatment in nav_treatments %}
+                    <a href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">{{ treatment.name }}</a>
+                {% empty %}
+                    <span>No treatments available</span>
+                {% endfor %}
 
             </div>
 
@@ -253,12 +221,12 @@
 
                 <p>
                     <i class="fa-solid fa-phone"></i>
-                    +91 XXXXX XXXXX
+                    +91 {{ web_contact.mobile_number|default:'80880 47271' }}
                 </p>
 
                 <p>
                     <i class="fa-regular fa-envelope"></i>
-                    info@example.com
+                    {{ web_contact.gmail|default:'jeevan71141@gmail.com' }}
                 </p>
 
             </div>
@@ -313,123 +281,61 @@
         <h2>Book Your Appointment</h2>
 
         <p class="appointment-subtitle">
-            Get personalized physiotherapy care at your convenience.
+            Send your appointment request. Our doctor will contact you to confirm an available date and time. After booking, use your booking number on the booking status page.
         </p>
 
+        {% block appointment_feedback %}
+            {% if messages %}
+                <div class="appointment-message-box">
+                    {% for message in messages %}
+                        <div class="appointment-message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endblock %}
 
-        <form id="appointment-form">
+        {% if patient_form %}
+            <form id="appointment-form" method="post" action="{% url 'home' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                {{ patient_form.non_field_errors }}
 
-            <div class="appointment-field">
+                {% for field in patient_form %}
+                    <div class="appointment-field">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
 
-                <label for="appointment-name">
-                    Name
-                </label>
-
-                <input
-                    type="text"
-                    id="appointment-name"
-                    placeholder="Please provide your name"
-                    required>
-
-            </div>
-
-
-            <div class="appointment-field">
-
-                <label for="appointment-phone">
-                    Mobile Number
-                </label>
-
-                <input
-                    type="tel"
-                    id="appointment-phone"
-                    placeholder="Enter your mobile number"
-                    maxlength="10"
-                    required>
-
-            </div>
-
-
-            <div class="appointment-field">
-
-                <label for="appointment-area">
-                    Location
-                </label>
-
-                <select id="appointment-area" required>
-
-                    <option value="">
-                        Select your area
-                    </option>
-
-                    <option>Whitefield</option>
-                    <option>Brookefield</option>
-                    <option>Marathahalli</option>
-                    <option>ITPL</option>
-                    <option>Other</option>
-
-                </select>
-
-            </div>
-
-
-            <div class="appointment-field">
-
-                <label for="appointment-service">
-                    Service Required
-                </label>
-
-                <select id="appointment-service" required>
-
-                    <option value="">
-                        Select a service
-                    </option>
-
-                    <option>Knee Pain</option>
-                    <option>Neck Pain</option>
-                    <option>Shoulder Pain</option>
-                    <option>Back Pain</option>
-                    <option>Stroke Rehab</option>
-                    <option>Other</option>
-
-                </select>
-
-            </div>
-
-
-            <p class="appointment-consent">
-                By submitting this form, you agree to be contacted
-                regarding your appointment request.
-            </p>
-
-
-            <button
-                type="submit"
-                class="appointment-submit">
-
-                <i class="fa-regular fa-calendar-check"></i>
-
-                Book Appointment
-
-                <i class="fa-solid fa-arrow-right"></i>
-
-            </button>
-
-        </form>
+                <button type="submit" class="appointment-submit">
+                    <i class="fa-regular fa-calendar-check"></i>
+                    Submit Appointment Request
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        {% endif %}
 
     </div>
 
 </div>
 
 
+    {% endif %}
 
 
 
-    <script src="{% static 'js/base.js' %}"></script>
+
+
+    <script src="{% static 'js/base.js' %}?v=20260927-2"></script>
 
     {% block script %}
     
     {% endblock %}
+
+    
 
 </body>
 

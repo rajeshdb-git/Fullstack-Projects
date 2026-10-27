@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+
+<link rel="stylesheet" href="{% static 'css/contact.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="contact-hero">
+    <div class="contact-hero-content">
+        <span class="contact-label">GET IN TOUCH</span>
+
+
+    <h1>Let’s Start Your <span>Recovery</span></h1>
+
+    <p>
+        Have a question about our physiotherapy services or want to
+        schedule a visit? Our team is here to help you take the next
+        step towards better movement and recovery.
+    </p>
+</div>
+
+
+</section>
+
+<section class="contact-section">
+
+
+<div class="contact-wrapper">
+
+    <!-- LEFT SIDE -->
+    <div class="contact-info">
+
+        <span class="section-tag">CONTACT US</span>
+
+        <h2>We’re Here to<br><span>Help You Move Better.</span></h2>
+
+        <p class="contact-description">
+            Whether you need information about a treatment, have a
+            question about home physiotherapy, or want to book an
+            appointment, feel free to reach out to us.
+        </p>
+
+
+        <div class="contact-details">
+
+            <div class="contact-item">
+
+                <div class="contact-icon">
+                    <i class="fa-solid fa-phone"></i>
+                </div>
+
+                <div>
+                    <h3>Call Us</h3>
+                    <p>+91 {{ web_contact.mobile_number|default:'80880 47271' }}</p>
+                    <small>Mon – Sat, 9:00 AM – 7:00 PM</small>
+                </div>
+
+            </div>
+
+
+            <div class="contact-item">
+
+                <div class="contact-icon">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+
+                <div>
+                    <h3>Email Us</h3>
+                    <p>{{ web_contact.gmail|default:'jeevan71141@gmail.com' }}</p>
+                    <small>We usually respond within 24 hours</small>
+                </div>
+
+            </div>
+
+
+            <div class="contact-item">
+
+                <div class="contact-icon">
+                    <i class="fa-solid fa-location-dot"></i>
+                </div>
+
+                <div>
+                    <h3>Our Location</h3>
+                    <p>Whitefield, Bengaluru</p>
+                    <small>Home physiotherapy services available</small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="contact-trust">
+
+            <div class="trust-icon">
+                <i class="fa-solid fa-house-medical"></i>
+            </div>
+
+            <div>
+                <strong>Personalized Care at Your Convenience</strong>
+                <p>
+                    Professional physiotherapy care designed around
+                    your recovery needs.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <div class="contact-form-card">
+
+        <div class="form-heading">
+
+            <span>HAVE A QUESTION?</span>
+
+            <h2>Send Us a Message</h2>
+
+            <p>
+                Fill out the form below and our team will get back
+                to you shortly.
+            </p>
+
+        </div>
+
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="contact-message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="post" class="contact-form">
+
+            {% csrf_token %}
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="{{ contact_form.first_name.id_for_label }}">
+                        First Name
+                    </label>
+
+                    {{ contact_form.first_name }}
+
+                    {% for error in contact_form.first_name.errors %}
+                        <small class="form-error">{{ error }}</small>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="{{ contact_form.last_name.id_for_label }}">
+                        Last Name
+                    </label>
+
+                    {{ contact_form.last_name }}
+
+                    {% for error in contact_form.last_name.errors %}
+                        <small class="form-error">{{ error }}</small>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="{{ contact_form.phone_number.id_for_label }}">
+                    Phone Number
+                </label>
+
+                {{ contact_form.phone_number }}
+
+                {% for error in contact_form.phone_number.errors %}
+                    <small class="form-error">{{ error }}</small>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="{{ contact_form.message.id_for_label }}">
+                    Your Message
+                </label>
+
+                {{ contact_form.message }}
+
+                {% for error in contact_form.message.errors %}
+                    <small class="form-error">{{ error }}</small>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="agreement">
+
+                {{ contact_form.agree }}
+
+                <label for="{{ contact_form.agree.id_for_label }}">
+                    I agree to be contacted regarding my enquiry.
+                </label>
+
+            </div>
+
+            {% for error in contact_form.agree.errors %}
+                <small class="form-error">{{ error }}</small>
+            {% endfor %}
+
+
+            <button type="submit" class="contact-submit">
+
+                <span>Submit Query</span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+</section>
+
+<section class="contact-bottom">
+
+
+<div class="contact-bottom-content">
+
+    <div>
+        <span>YOUR RECOVERY MATTERS</span>
+
+        <h2>Ready to Take the Next Step?</h2>
+
+        <p>
+            Get in touch with us and let’s discuss how we can support
+            your recovery journey.
+        </p>
+    </div>
+
+    <a href="{% url 'home' %}#appointment-overlay"
+       class="contact-book-btn">
+        Book an Appointment
+        <i class="fa-solid fa-arrow-right"></i>
+    </a>
+
+</div>
+
+
+</section>
+
+{% endblock %}

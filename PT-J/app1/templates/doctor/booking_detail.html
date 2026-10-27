@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20261015-2">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-catalog-page doctor-detail-page">
+    <a href="{% url 'doctor_bookings' %}" class="doctor-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to bookings</a>
+    {% if messages %}<div class="doctor-feedback" role="status" aria-live="polite">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+
+    <header class="doctor-booking-page-header">
+        <div>
+            <p class="doctor-eyebrow">{{ booking.booking_number }}</p>
+            <h1>{{ booking.full_name }}</h1>
+            <p>{{ booking.treatment.name|default:'Treatment not selected' }}{% if booking.location %} · {{ booking.location.name }}{% endif %}</p>
+        </div>
+        <span class="doctor-status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+    </header>
+
+    <div class="doctor-patient-detail-grid">
+        <section class="doctor-management-section">
+            <h2>Patient details</h2>
+            <dl class="doctor-patient-facts">
+                <div><dt>Phone</dt><dd><a href="tel:{{ booking.phone_number }}">{{ booking.phone_number }}</a></dd></div>
+                <div><dt>Email</dt><dd><a href="mailto:{{ booking.email }}">{{ booking.email }}</a></dd></div>
+                <div><dt>Requested care</dt><dd>{{ booking.treatment.name|default:'Not selected' }}</dd></div>
+                <div><dt>Preferred location</dt><dd>{{ booking.location.name|default:'Not selected' }}</dd></div>
+                <div><dt>Patient notes</dt><dd>{{ booking.problems|default:'No notes provided'|linebreaksbr }}</dd></div>
+                <div><dt>WhatsApp updates</dt><dd>{% if booking.whatsapp_consent %}Patient opted in{% else %}Not requested{% endif %}</dd></div>
+                <div><dt>Doctor WhatsApp alert</dt><dd>
+                    {% if booking.whatsapp_notification %}
+                        {{ booking.whatsapp_notification.get_status_display }}
+                        {% if booking.whatsapp_notification.status == 'sent' %}
+                            (Meta template)
+                        {% elif booking.whatsapp_notification.last_reason %} — {{ booking.whatsapp_notification.last_reason|cut:'_' }}{% endif %}
+                    {% else %}No notification status recorded{% endif %}
+                </dd></div>
+                <div><dt>Received</dt><dd>{{ booking.created_at|date:'d M Y, H:i' }}</dd></div>
+            </dl>
+            {% if whatsapp_url %}<a class="doctor-whatsapp-button" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Open patient chat</a>{% endif %}
+        </section>
+
+        <section class="doctor-management-section">
+            <h2>Appointment tracking</h2>
+            <div class="doctor-current-status status-{{ booking.status }}">
+                <span class="doctor-status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                <p>{% if booking.status == 'new' %}This request is waiting for a date and time. Set both, then change the status to Scheduled.{% elif booking.status == 'scheduled' %}The appointment is confirmed. Update the schedule if it changes, or mark it Completed after the visit.{% elif booking.status == 'completed' %}This appointment is marked complete. Its booking and billing history remain available below.{% elif booking.status == 'cancelled' %}This appointment is cancelled. You can change the status if it needs to be reopened.{% endif %}</p>
+            </div>
+            <form method="post" class="doctor-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="schedule">
+                {% for field in appointment_form %}<div class="doctor-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+                <p class="doctor-status-form-hint">To mark a booking Scheduled, enter both an appointment date and time. New means it still needs scheduling.</p>
+                <button type="submit" class="doctor-submit">Save schedule</button>
+            </form>
+        </section>
+
+        <section class="doctor-management-section">
+            <h2>Generate bill</h2>
+            <form method="post" class="doctor-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_bill">
+                {% for field in bill_form %}<div class="doctor-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+                <button type="submit" class="doctor-submit"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i> Create bill</button>
+            </form>
+        </section>
+
+        <section class="doctor-management-section">
+            <h2>Bill history</h2>
+            {% if bills %}
+                <ul class="doctor-bill-list">
+                    {% for bill in bills %}<li><a href="{% url 'doctor_bill_detail' bill.pk %}"><strong>{{ bill.bill_number }}</strong><span>₹{{ bill.amount }} · {{ bill.get_status_display }}</span></a></li>{% endfor %}
+                </ul>
+            {% else %}<p class="doctor-muted-copy">No bills have been issued for this booking.</p>{% endif %}
+        </section>
+    </div>
+    {% if not bills %}
+        <form method="post" action="{% url 'doctor_bookings' %}" class="doctor-booking-detail-delete" onsubmit="return confirm('Permanently delete booking {{ booking.booking_number }}? This cannot be undone.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_booking">
+            <input type="hidden" name="booking_id" value="{{ booking.pk }}">
+            <button type="submit" class="doctor-booking-delete"><i class="fa-regular fa-trash-can" aria-hidden="true"></i> Delete booking</button>
+            <p>Deleting removes this booking and its notification record. To preserve patient history, cancel it instead.</p>
+        </form>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block style %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=20261013-1">
 {% endblock %}
 
 {% block content %}
@@ -78,166 +78,42 @@
 </section>
 
 
-<section class="conditions-section">
-
+<section class="conditions-section treatments-section">
     <div class="conditions-heading">
-
-        <h2>Conditions We Treat</h2>
-
-        <p>
-            Physio_Whitefield helps you manage various conditions,
-            including
-        </p>
-
+        <h2>Our Treatments</h2>
+        <p>Explore the physiotherapy treatments currently offered by our clinic.</p>
+        <div class="treatments-search">
+            <label class="visually-hidden" for="treatment-search">Search treatments</label>
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="treatment-search" type="search" placeholder="Search treatments" autocomplete="off">
+        </div>
     </div>
 
-
-    <div class="conditions-grid" id="conditions-grid">
-
-
-        <!-- CARD 1 -->
-
-        <div class="condition-card">
-
-            <img
-                src="{% static 'images/back-neck.jpg' %}"
-                alt="Back and Neck">
-
-            <div class="condition-info">
-
-                <h3>Back & Neck</h3>
-
-                <p>Sciatica</p>
-
-                <p>Cervical Spondylitis</p>
-
-                <span>+2 Conditions</span>
-
-            </div>
-
-        </div>
-
-
-        <!-- CARD 2 -->
-
-        <div class="condition-card">
-
-            <img
-                src="{% static 'images/knee-ankle.jpg' %}"
-                alt="Knee and Ankle">
-
-            <div class="condition-info">
-
-                <h3>Knee & Ankle</h3>
-
-                <p>Osteoarthritis</p>
-
-                <p>Ligament Injury</p>
-
-                <span>+2 Conditions</span>
-
-            </div>
-
-        </div>
-
-
-        <!-- CARD 3 -->
-
-        <div class="condition-card">
-
-            <img
-                src="{% static 'images/shoulder.jpg' %}"
-                alt="Shoulder and Elbow">
-
-            <div class="condition-info">
-
-                <h3>Shoulder & Elbow</h3>
-
-                <p>Frozen Shoulder</p>
-
-                <p>Tennis Elbow</p>
-
-                <span>+2 Conditions</span>
-
-            </div>
-
-        </div>
-
-
-        <!-- CARD 4 -->
-
-        <div class="condition-card">
-
-            <img
-                src="{% static 'images/neurological.jpg' %}"
-                alt="Neurological">
-
-            <div class="condition-info">
-
-                <h3>Neurological</h3>
-
-                <p>Stroke / Paralysis</p>
-
-                <p>Parkinson's</p>
-
-                <span>+4 Conditions</span>
-
-            </div>
-
-        </div>
-
-
-        <!-- CARD 5 -->
-
-        <div class="condition-card">
-
-            <img
-                src="{% static 'images/sports.jpg' %}"
-                alt="Sports Injury">
-
-            <div class="condition-info">
-
-                <h3>Sports Injury</h3>
-
-                <p>ACL – MCL Tear</p>
-
-                <p>Ankle – Heel Pain</p>
-
-                <span>+2 Conditions</span>
-
-            </div>
-
-        </div>
-
-
-        <!-- VIEW MORE -->
-
-        <button
-            class="view-more-card"
-            id="view-more-conditions"
-            type="button">
-
-            <span>View More</span>
-
-            <i class="fa-solid fa-chevron-down"></i>
-
-        </button>
-
+    <div class="treatments-grid" id="treatments-grid">
+        {% for treatment in treatments %}
+            <article class="treatment-card" data-name="{{ treatment.name|lower }}">
+                <div class="treatment-card-image">
+                    {% if treatment.image %}
+                        <img src="{{ treatment.image.url }}" alt="{{ treatment.name }}" loading="lazy">
+                    {% else %}
+                        <div class="treatment-image-placeholder" aria-hidden="true">
+                            <i class="fa-solid fa-person-walking"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="treatment-card-content">
+                    <h3><a href="{% url 'treatment_detail' treatment.url_slug treatment.id %}">{{ treatment.name }}</a></h3>
+                    <a href="{% url 'treatment_detail' treatment.url_slug treatment.id %}" class="treatment-book-link">
+                        View treatment
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </article>
+        {% empty %}
+            <p class="treatments-empty">Treatments will appear here when they are added.</p>
+        {% endfor %}
+        <p class="treatments-empty" id="treatments-filter-empty" hidden>No treatments match your search.</p>
     </div>
-
-
-    <!-- ALL CONDITIONS -->
-
-    <div class="explore-conditions">
-
-        <a href="/all-conditions/">
-
-            Explore Conditions
-
-        </a>
-
-    </div>
-
 </section>
 <!-- CARE EXPERIENCE SECTION -->
 
@@ -295,11 +171,10 @@
     </p>
 
 
-    <a href="/Contact/" class="care-button">
+    <a href="{% url 'contact' %}" class="care-button">
         Get In Touch
         <i class="fa-solid fa-arrow-right"></i>
     </a>
-
 </section>
 
 
@@ -307,7 +182,5 @@
 {% endblock %}
 
 {% block script %}
-
-<script src="{% static 'js/home.js' %}"></script>
-
+<script src="{% static 'js/home.js' %}?v=20261013-1"></script>
 {% endblock %}

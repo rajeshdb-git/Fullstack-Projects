@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20261015-1">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-catalog-page doctor-bookings-page">
+    <header class="doctor-booking-page-header">
+        <div>
+            <p class="doctor-eyebrow">Doctor workspace</p>
+            <h1>Contact enquiries</h1>
+            <p>Review messages sent from the public contact form.</p>
+        </div>
+        <a href="{% url 'doctor_bookings' %}" class="doctor-secondary-link"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Patient bookings</a>
+        <a href="{% url 'doctor_whatsapp_inbox' %}" class="doctor-secondary-link">WhatsApp messages</a>
+    </header>
+
+    {% if messages %}
+        <div class="doctor-feedback" role="status" aria-live="polite">
+            {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    <nav class="doctor-status-summary" aria-label="Filter enquiries by status">
+        <a href="?status=all{% if search %}&q={{ search|urlencode }}{% endif %}" class="{% if status_filter == 'all' %}is-active{% endif %}"><strong>{{ status_counts.all }}</strong> All</a>
+        <a href="?status=new{% if search %}&q={{ search|urlencode }}{% endif %}" class="{% if status_filter == 'new' %}is-active{% endif %}"><strong>{{ status_counts.new }}</strong> New</a>
+        <a href="?status=reviewed{% if search %}&q={{ search|urlencode }}{% endif %}" class="{% if status_filter == 'reviewed' %}is-active{% endif %}"><strong>{{ status_counts.reviewed }}</strong> Reviewed</a>
+        <a href="?status=closed{% if search %}&q={{ search|urlencode }}{% endif %}" class="{% if status_filter == 'closed' %}is-active{% endif %}"><strong>{{ status_counts.closed }}</strong> Closed</a>
+    </nav>
+
+    <section class="doctor-booking-sheet">
+        <div class="doctor-booking-toolbar">
+            <p>Showing {{ inquiries|length }} matching enquiries</p>
+            <form method="get" class="doctor-booking-search">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <label class="visually-hidden" for="enquiry-search">Search enquiries</label>
+                <input id="enquiry-search" type="search" name="q" value="{{ search }}" placeholder="Name, phone, or message">
+                <button type="submit" aria-label="Search enquiries"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
+                {% if search %}<a href="?status={{ status_filter }}">Clear</a>{% endif %}
+            </form>
+        </div>
+
+        <div class="doctor-booking-table-wrap">
+            <table class="doctor-booking-table doctor-agenda-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Received</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inquiry in inquiries %}
+                        <tr>
+                            <td data-label="Received">{{ inquiry.created_at|date:'d M Y, H:i' }}</td>
+                            <td data-label="Name"><strong>{{ inquiry.first_name }} {{ inquiry.last_name }}</strong></td>
+                            <td data-label="Phone"><a href="tel:{{ inquiry.phone_number }}">{{ inquiry.phone_number }}</a></td>
+                            <td data-label="Message">{{ inquiry.message|linebreaksbr }}</td>
+                            <td data-label="Status"><span class="doctor-status-badge status-{{ inquiry.status }}">{{ inquiry.get_status_display }}</span></td>
+                            <td data-label="Update">
+                                <form method="post" class="doctor-inquiry-actions">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="inquiry_id" value="{{ inquiry.pk }}">
+                                    {% if inquiry.status != 'reviewed' %}
+                                        <button type="submit" name="action" value="mark_reviewed">Mark reviewed</button>
+                                    {% endif %}
+                                    {% if inquiry.status != 'closed' %}
+                                        <button type="submit" name="action" value="mark_closed">Close</button>
+                                    {% endif %}
+                                    {% if inquiry.status != 'new' %}
+                                        <button type="submit" name="action" value="mark_new">Reopen</button>
+                                    {% endif %}
+                                    <button type="submit" name="action" value="delete" class="doctor-inquiry-delete" onclick="return confirm('Permanently delete this enquiry? This cannot be undone.');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="doctor-booking-empty">No enquiries in this view.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if inquiries.has_other_pages %}
+            <nav class="doctor-booking-pagination" aria-label="Enquiry pages">
+                {% if inquiries.has_previous %}<a href="?status={{ status_filter }}&q={{ search|urlencode }}&page={{ inquiries.previous_page_number }}">Previous</a>{% endif %}
+                <span>Page {{ inquiries.number }} of {{ inquiries.paginator.num_pages }}</span>
+                {% if inquiries.has_next %}<a href="?status={{ status_filter }}&q={{ search|urlencode }}&page={{ inquiries.next_page_number }}">Next</a>{% endif %}
+            </nav>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

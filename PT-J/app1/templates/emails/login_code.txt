@@ -1,0 +1,10 @@
+PHYSIO WHITEFIELD
+{{ portal_name|title }} sign-in
+
+Your one-time code: {{ otp }}
+
+This code expires in {{ expiry_minutes }} minutes and can only be used once. Do not share it with anyone. Physio Whitefield staff will never ask you to tell them this code.
+
+If you did not try to sign in, you can ignore this email. Your account remains secure.
+
+This is an automated security message. Please do not reply.

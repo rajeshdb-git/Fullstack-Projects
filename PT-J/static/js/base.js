@@ -1,482 +1,119 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const menuButton = document.getElementById("menu-button");
+    const navigation = document.getElementById("header_ryt");
+    const services = document.querySelector(".services");
+    const appointmentOverlay = document.getElementById("appointment-overlay");
+    const appointmentClose = document.getElementById("appointment-close");
+    const appointmentButtons = document.querySelectorAll("#open-appointment, .open-appointment");
+    const appointmentMessages = document.querySelectorAll(".appointment-message");
 
-    const menuButton =
-        document.getElementById("menu-button");
-
-    const navigation =
-        document.getElementById("header_ryt");
-
-    const services =
-        document.querySelector(".services");
-
-
-    /* MOBILE MENU */
+    function closeAppointment() {
+        if (appointmentOverlay) {
+            appointmentOverlay.classList.remove("active");
+        }
+        document.body.style.overflow = "";
+    }
 
     if (menuButton && navigation) {
-
         menuButton.addEventListener("click", function () {
-
             navigation.classList.toggle("active");
-
-            const icon =
-                menuButton.querySelector("i");
+            const icon = menuButton.querySelector("i");
 
             if (navigation.classList.contains("active")) {
-
                 icon.classList.remove("fa-bars");
-
                 icon.classList.add("fa-xmark");
-
             } else {
-
                 icon.classList.remove("fa-xmark");
-
                 icon.classList.add("fa-bars");
-
             }
-
         });
-
     }
-
-
-    /* MOBILE SERVICES DROPDOWN */
 
     if (services) {
-
-        const serviceLink =
-            services.querySelector(".header-a");
-
-
-        serviceLink.addEventListener("click", function (event) {
-
-            if (window.innerWidth <= 768) {
-
-                event.preventDefault();
-
-                services.classList.toggle("active");
-
-            }
-
-        });
-
-    }
-
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-
-
-    /* =========================================
-       MOBILE MENU
-       ========================================= */
-
-    const menuButton =
-        document.getElementById("menu-button");
-
-    const navigation =
-        document.getElementById("header_ryt");
-
-    const services =
-        document.querySelector(".services");
-
-
-    if (menuButton && navigation) {
-
-        menuButton.addEventListener(
-            "click",
-            function () {
-
-                navigation.classList.toggle("active");
-
-                const icon =
-                    menuButton.querySelector("i");
-
-
-                if (
-                    navigation.classList.contains("active")
-                ) {
-
-                    icon.classList.remove("fa-bars");
-
-                    icon.classList.add("fa-xmark");
-
-                } else {
-
-                    icon.classList.remove("fa-xmark");
-
-                    icon.classList.add("fa-bars");
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* =========================================
-       MOBILE SERVICES DROPDOWN
-       ========================================= */
-
-    if (services) {
-
-        const serviceLink =
-            services.querySelector(".header-a");
-
+        const serviceLink = services.querySelector(".header-a");
 
         if (serviceLink) {
-
-            serviceLink.addEventListener(
-                "click",
-                function (event) {
-
-                    if (window.innerWidth <= 768) {
-
-                        event.preventDefault();
-
-                        services.classList.toggle(
-                            "active"
-                        );
-
-                    }
-
+            serviceLink.addEventListener("click", function (event) {
+                if (window.innerWidth <= 768) {
+                    event.preventDefault();
+                    services.classList.toggle("active");
                 }
-            );
-
+            });
         }
-
     }
 
+    if (appointmentOverlay && (appointmentMessages.length > 0 || window.location.search.includes("success=1") || window.location.hash === "#appointment-overlay")) {
+        appointmentOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
 
-    /* =========================================
-       BOOK APPOINTMENT POPUP
-       ========================================= */
-
-    const appointmentOverlay =
-        document.getElementById(
-            "appointment-overlay"
-        );
-
-    const appointmentClose =
-        document.getElementById(
-            "appointment-close"
-        );
-
-
-    /*
-       We use querySelectorAll because
-       you may have Book Appointment buttons
-       in different sections of the Home page.
-    */
-
-    const appointmentButtons =
-        document.querySelectorAll(
-            "#open-appointment, .open-appointment"
-        );
-
-
-    /* OPEN POPUP */
-
-    appointmentButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    appointmentOverlay.classList.add(
-                        "active"
-                    );
-
-                    document.body.style.overflow =
-                        "hidden";
-
-                }
-            );
-
+        const successMessage = document.querySelector('.appointment-message.success');
+        if (successMessage) {
+            const appointmentForm = document.getElementById('appointment-form');
+            if (appointmentForm) {
+                appointmentForm.classList.add('appointment-form--hidden');
+            }
         }
-    );
+    }
 
-
-    /* CLOSE POPUP */
+    appointmentButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            if (appointmentOverlay) {
+                appointmentOverlay.classList.add("active");
+                document.body.style.overflow = "hidden";
+            }
+        });
+    });
 
     if (appointmentClose) {
-
-        appointmentClose.addEventListener(
-            "click",
-            closeAppointment
-        );
-
+        appointmentClose.addEventListener("click", closeAppointment);
     }
-
-
-    /* CLICK OUTSIDE */
 
     if (appointmentOverlay) {
-
-        appointmentOverlay.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target ===
-                    appointmentOverlay
-                ) {
-
-                    closeAppointment();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* ESC KEY */
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key === "Escape" &&
-                appointmentOverlay &&
-                appointmentOverlay.classList.contains(
-                    "active"
-                )
-            ) {
-
+        appointmentOverlay.addEventListener("click", function (event) {
+            if (event.target === appointmentOverlay) {
                 closeAppointment();
-
             }
-
-        }
-    );
-
-
-    function closeAppointment() {
-
-        appointmentOverlay.classList.remove(
-            "active"
-        );
-
-        document.body.style.overflow = "";
-
+        });
     }
 
+    document.querySelectorAll('.treatment-faq-item').forEach(function (item, index) {
+        const button = item.querySelector('.treatment-faq-question');
+        if (!button) return;
 
-});
-document.addEventListener("DOMContentLoaded", function () {
-
-
-    /* =========================================
-       MOBILE MENU
-       ========================================= */
-
-    const menuButton =
-        document.getElementById("menu-button");
-
-    const navigation =
-        document.getElementById("header_ryt");
-
-
-    if (menuButton && navigation) {
-
-        menuButton.addEventListener(
-            "click",
-            function () {
-
-                navigation.classList.toggle("active");
-
-
-                const icon =
-                    menuButton.querySelector("i");
-
-
-                if (
-                    navigation.classList.contains("active")
-                ) {
-
-                    icon.classList.remove("fa-bars");
-
-                    icon.classList.add("fa-xmark");
-
-                } else {
-
-                    icon.classList.remove("fa-xmark");
-
-                    icon.classList.add("fa-bars");
-
-                }
-
+        const answerWrap = item.querySelector('.treatment-faq-answer-wrap');
+        const updateState = function (shouldOpen) {
+            item.classList.toggle('open', shouldOpen);
+            button.setAttribute('aria-expanded', String(shouldOpen));
+            if (answerWrap) {
+                answerWrap.style.display = shouldOpen ? 'block' : 'none';
             }
-        );
+        };
 
-    }
-
-
-    /* =========================================
-       SERVICES MOBILE DROPDOWN
-       ========================================= */
-
-    const services =
-        document.querySelector(".services");
-
-
-    if (services) {
-
-        const serviceLink =
-            services.querySelector(".header-a");
-
-
-        if (serviceLink) {
-
-            serviceLink.addEventListener(
-                "click",
-                function (event) {
-
-                    if (window.innerWidth <= 768) {
-
-                        event.preventDefault();
-
-                        services.classList.toggle(
-                            "active"
-                        );
-
-                    }
-
-                }
-            );
-
+        if (index === 0) {
+            updateState(true);
+        } else {
+            updateState(false);
         }
 
-    }
+        button.addEventListener('click', function () {
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.treatment-faq-item').forEach(function (faqItem) {
+                const faqButton = faqItem.querySelector('.treatment-faq-question');
+                const faqWrap = faqItem.querySelector('.treatment-faq-answer-wrap');
+                faqItem.classList.remove('open');
+                if (faqButton) faqButton.setAttribute('aria-expanded', 'false');
+                if (faqWrap) faqWrap.style.display = 'none';
+            });
 
-
-    /* =========================================
-       APPOINTMENT POPUP
-       ========================================= */
-
-    const appointmentOverlay =
-        document.getElementById(
-            "appointment-overlay"
-        );
-
-
-    const appointmentClose =
-        document.getElementById(
-            "appointment-close"
-        );
-
-
-    const appointmentButtons =
-        document.querySelectorAll(
-            ".open-appointment"
-        );
-
-
-    /* OPEN */
-
-    appointmentButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    if (appointmentOverlay) {
-
-                        appointmentOverlay.classList.add(
-                            "active"
-                        );
-
-                        document.body.style.overflow =
-                            "hidden";
-
-                    }
-
-                }
-            );
-
-        }
-    );
-
-
-    /* CLOSE */
-
-    if (appointmentClose) {
-
-        appointmentClose.addEventListener(
-            "click",
-            function () {
-
-                closeAppointment();
-
+            if (!isOpen) {
+                updateState(true);
             }
-        );
+        });
+    });
 
-    }
-
-
-    /* CLICK OUTSIDE */
-
-    if (appointmentOverlay) {
-
-        appointmentOverlay.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target ===
-                    appointmentOverlay
-                ) {
-
-                    closeAppointment();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* ESCAPE */
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key === "Escape" &&
-                appointmentOverlay &&
-                appointmentOverlay.classList.contains(
-                    "active"
-                )
-            ) {
-
-                closeAppointment();
-
-            }
-
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && appointmentOverlay && appointmentOverlay.classList.contains("active")) {
+            closeAppointment();
         }
-    );
-
-
-    function closeAppointment() {
-
-        if (appointmentOverlay) {
-
-            appointmentOverlay.classList.remove(
-                "active"
-            );
-
-        }
-
-        document.body.style.overflow = "";
-
-    }
-
+    });
 });

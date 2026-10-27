@@ -18,6 +18,7 @@ body {
     margin: 0;
 
     font-family:
+
         "Inter",
         "Segoe UI",
         Arial,
@@ -157,6 +158,43 @@ a {
     color: #258b50;
 }
 
+.header-count {
+    display: inline-flex;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #19704d;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.header-logout-form {
+    display: flex;
+}
+
+.header-logout-button {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
 
 /* ========================================
    SERVICES
@@ -238,8 +276,10 @@ a {
     visibility: visible;
 
     transform:
+
         translateX(-50%)
         translateY(0);
+
 }
 
 
@@ -286,7 +326,6 @@ a {
     border-radius: 10px;
 }
 
-
 /* ========================================
    BOOK BUTTON
    ======================================== */
@@ -319,11 +358,11 @@ a {
 
     font-weight: 600;
 
-    letter-spacing: 0.2px;
+    letter-spacing: 0.2px;                                                
 
-    white-space: nowrap;
+    white-space: nowrap; 
 
-    cursor: pointer;
+    cursor: pointer; 
 
     box-shadow:
         0 4px 12px rgba(37, 139, 80, 0.18);
@@ -332,7 +371,11 @@ a {
         background-color 0.25s ease,
         transform 0.25s ease,
         box-shadow 0.25s ease;
+
 }
+
+
+
 .book-button i {
 
     font-size: 14px;
@@ -347,7 +390,7 @@ a {
 
     color: #ffffff;
 
-    transform: translateY(-2px);
+    transform: translateY(-2px);    
 
     box-shadow:
         0 7px 18px rgba(37, 139, 80, 0.25);
@@ -363,13 +406,14 @@ a {
     box-shadow:
         0 3px 8px rgba(37, 139, 80, 0.18);
 }
-/* ========================================
-   MOBILE MENU BUTTON
-   ======================================== */
+
+
+
 
 /* ========================================
    MOBILE MENU BUTTON
    ======================================== */
+
 
 .menu-button {
     display: none;
@@ -398,6 +442,7 @@ a {
    MOBILE
    ======================================== */
 
+
 @media (max-width: 768px) {
 
     header {
@@ -422,8 +467,6 @@ a {
     .menu-button {
         display: flex;
     }
-
-
     /* HIDE DESKTOP NAV */
 
     #header_ryt {
@@ -998,36 +1041,38 @@ a {
     }
 
 }
-/* ========================================
+/* ==================================================
    APPOINTMENT POPUP
-   ======================================== */
+   ================================================== */
 
 .appointment-overlay {
     position: fixed;
     inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    background: rgba(0, 0, 0, 0.72);
+    z-index: 99999;
 
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
 
-    padding: 20px;
-    box-sizing: border-box;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+
+    background: rgba(0, 0, 0, 0.72);
 
     opacity: 0;
     visibility: hidden;
 
-    transition: 0.3s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 
-    z-index: 99999;
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
 }
 
-
-/* OPEN POPUP */
 
 .appointment-overlay.active {
     opacity: 1;
@@ -1035,155 +1080,187 @@ a {
 }
 
 
-/* ========================================
-   POPUP BOX
-   ======================================== */
-
 .appointment-modal {
     position: relative;
 
     width: 100%;
-    max-width: 470px;
+    max-width: 500px;
+    flex: 0 0 auto;
+    margin: auto 0;
 
-    max-height: 90vh;
+    padding: 26px 30px;
 
-    overflow-y: auto;
+    background: #ffffff;
 
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 35px;
-
-    box-sizing: border-box;
+    border-radius: 16px;
 
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.30);
 
     transform: scale(0.95);
 
-    transition: 0.3s ease;
+    transition:
+        transform 0.3s ease;
+
+    overflow: visible;
 }
 
 
-.appointment-overlay.active
-.appointment-modal {
+.appointment-overlay.active .appointment-modal {
     transform: scale(1);
 }
 
 
-/* ========================================
+/* ==================================================
    CLOSE BUTTON
-   ======================================== */
+   ================================================== */
 
 .appointment-close {
     position: absolute;
 
-    top: 15px;
-    right: 15px;
+    top: 10px;
+    right: 10px;
 
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     border: none;
-
     border-radius: 50%;
 
     background: #f1f3f4;
-
     color: #263746;
 
-    font-size: 18px;
+    font-size: 15px;
 
     cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+
+/* ==================================================
+   APPOINTMENT ICON
+   ================================================== */
+
+.appointment-icon {
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto 8px;
 
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-
-.appointment-close:hover {
-    background: #258b50;
-    color: white;
-}
-
-
-/* ========================================
-   ICON
-   ======================================== */
-
-.appointment-icon {
-    width: 75px;
-    height: 75px;
-
-    margin: -65px auto 15px;
-
-    border: 6px solid white;
 
     border-radius: 50%;
 
     background: #258b50;
+    color: #ffffff;
 
-    color: white;
-
-    font-size: 30px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 23px;
 
     box-shadow:
         0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 
-/* ========================================
+/* ==================================================
    TITLE
-   ======================================== */
+   ================================================== */
 
 .appointment-modal h2 {
-    margin: 0 0 7px;
-
-    text-align: center;
+    margin-bottom: 4px;
 
     color: #243b45;
 
-    font-size: 27px;
+    font-size: 23px;
+
+    text-align: center;
 }
 
 
 .appointment-subtitle {
-    margin: 0 0 22px;
-
-    text-align: center;
+    margin-bottom: 12px;
 
     color: #68757c;
 
-    font-size: 14px;
+    font-size: 12px;
 
-    line-height: 1.5;
+    line-height: 1.4;
+
+    text-align: center;
 }
 
 
-/* ========================================
-   FORM
-   ======================================== */
+.appointment-message-box {
+    margin-bottom: 16px;
+}
+
+
+.appointment-message {
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+
+.appointment-message.success {
+    border-color: #b7dfc5;
+    background: #edf8f0;
+    color: #195b35;
+}
+
+
+.appointment-message.error {
+    border-color: #f1c4c0;
+    background: #fff1f0;
+    color: #9f241b;
+}
+
+
+.appointment-message.warning {
+    border-color: #f0d7a8;
+    background: #fff8e8;
+    color: #79500d;
+}
+
+
+.appointment-message.info {
+    border-color: #b9d9ea;
+    background: #eef7fc;
+    color: #175a78;
+}
+
+
+.appointment-form--hidden {
+    display: none;
+}
+
+
+/* ==================================================
+   APPOINTMENT FORM
+   ================================================== */
 
 .appointment-field {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 
 .appointment-field label {
     display: block;
 
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 
     color: #4b5b61;
 
     font-size: 13px;
-
     font-weight: 600;
 }
 
@@ -1191,22 +1268,16 @@ a {
 .appointment-field input,
 .appointment-field select {
     width: 100%;
+    min-height: 46px;
 
-    height: 46px;
-
-    padding: 0 13px;
-
-    box-sizing: border-box;
+    padding: 9px 12px;
 
     border: 1px solid #d8dfe2;
+    border-radius: 7px;
 
-    border-radius: 8px;
-
-    background: white;
+    background: #ffffff;
 
     color: #263746;
-
-    font-family: inherit;
 
     font-size: 14px;
 
@@ -1214,27 +1285,51 @@ a {
 }
 
 
-.appointment-field input:focus,
-.appointment-field select:focus {
-    border-color: #258b50;
-
-    box-shadow:
-        0 0 0 3px rgba(37, 139, 80, 0.10);
-}
-
-
-/* ========================================
+/* ==================================================
    CONSENT
-   ======================================== */
+   ================================================== */
 
 .appointment-consent {
-    margin: 5px 0 18px;
+    margin: 3px 0 10px;
 
     color: #6d7478;
 
-    font-size: 11px;
+    font-size: 10px;
 
-    line-height: 1.6;
+    line-height: 1.4;
+}
+
+
+/* ==================================================
+   SUBMIT BUTTON
+   ================================================== */
+
+.appointment-submit {
+    width: 100%;
+
+    min-height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background: #258b50;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.25s ease;
 }
 
 
@@ -1286,19 +1381,413 @@ a {
 
 
 /* ========================================
+   SERVICE PAGE PATIENT FORM
+   ======================================== */
+
+.service-page {
+    width: min(92%, 900px);
+    margin: 0 auto;
+    padding: 70px 0;
+}
+
+
+.service-page h1 {
+    margin-bottom: 12px;
+    color: #243b45;
+}
+
+
+.service-page > p {
+    margin-bottom: 28px;
+    color: #68757c;
+}
+
+.treatment-detail-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: start;
+    gap: clamp(28px, 4vw, 56px);
+    width: min(92%, 1180px);
+    margin: 0 auto;
+    padding: 52px 0 72px;
+    box-sizing: border-box;
+}
+
+.treatment-detail-main {
+    min-width: 0;
+}
+
+.treatment-detail-image {
+    position: relative;
+    width: 100%;
+    max-height: 500px;
+    aspect-ratio: 16 / 10;
+    margin-bottom: 30px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #e8f1ed;
+    box-shadow: 0 18px 40px rgba(26, 55, 44, 0.14);
+}
+
+.treatment-detail-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.treatment-detail-placeholder {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    color: #267252;
+    font-size: 64px;
+}
+
+.treatment-detail-eyebrow {
+    margin: 0 0 12px;
+    color: #16734f;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.treatment-detail-content h1 {
+    margin: 0 0 16px;
+    color: #243b45;
+    font-size: 42px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.treatment-detail-content > p:not(.treatment-detail-eyebrow) {
+    margin: 0;
+    color: #53636a;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.treatment-faq {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #dfe9e5;
+}
+
+.treatment-faq h2 {
+    margin: 0 0 18px;
+    color: #243b45;
+    font-size: clamp(22px, 2vw, 30px);
+    line-height: 1.3;
+}
+
+.treatment-faq-item {
+    border: 1px solid #dde8e2;
+    border-radius: 8px;
+    background: #f8fbf9;
+    box-shadow: 0 8px 16px rgba(26, 59, 47, 0.04);
+    overflow: hidden;
+}
+
+.treatment-faq-item + .treatment-faq-item {
+    margin-top: 14px;
+}
+
+.treatment-faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 18px 18px 16px;
+    border: 0;
+    background: transparent;
+    color: #13563d;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+}
+
+.treatment-faq-question i {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    color: #16734f;
+}
+
+.treatment-faq-item.open .treatment-faq-question i {
+    transform: rotate(180deg);
+}
+
+.treatment-faq-answer-wrap {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+}
+
+.treatment-faq-item.open .treatment-faq-answer-wrap {
+    display: block;
+    max-height: 500px;
+}
+
+.treatment-faq-answer {
+    margin: 0;
+    padding: 0 18px 18px;
+    color: #53636a;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.treatment-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 48px;
+    margin-top: 28px;
+    padding: 0 22px;
+    border-radius: 6px;
+    background: #16734f;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.treatment-detail-cta:hover {
+    background: #10583c;
+}
+
+.treatment-detail-booking-card {
+    position: sticky;
+    top: 106px;
+    align-self: start;
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+    border: 1px solid #dce8e1;
+    border-radius: 8px;
+    background: #f5faf6;
+    box-shadow: 0 12px 28px rgba(26, 55, 44, 0.08);
+}
+
+.treatment-detail-booking-card h2 {
+    margin: 0;
+    color: #243b45;
+    font-size: 22px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.treatment-detail-booking-card > p:not(.treatment-detail-eyebrow) {
+    margin: 0;
+    color: #53636a;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.treatment-detail-booking-card .treatment-detail-cta {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.treatment-detail-booking-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #dce8e1;
+    color: #52645d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.treatment-detail-booking-note i {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: #16734f;
+}
+
+@media (max-width: 900px) {
+    .treatment-detail-page {
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 24px;
+        width: min(94%, 820px);
+        padding: 36px 0 52px;
+    }
+
+    .treatment-detail-image {
+        margin-bottom: 24px;
+    }
+
+    .treatment-detail-content h1 {
+        font-size: 34px;
+    }
+
+    .treatment-detail-booking-card {
+        top: 94px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 700px) {
+    .treatment-detail-page {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        width: min(100% - 32px, 560px);
+        padding: 28px 0 48px;
+    }
+
+    .treatment-detail-image {
+        position: static;
+        max-height: none;
+        aspect-ratio: 4 / 3;
+        margin-bottom: 22px;
+    }
+
+    .treatment-detail-content h1 {
+        margin-bottom: 12px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    .treatment-detail-content > p:not(.treatment-detail-eyebrow) {
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .treatment-faq {
+        margin-top: 22px;
+        padding-top: 20px;
+    }
+
+    .treatment-faq-question {
+        gap: 10px;
+        padding: 14px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .treatment-faq-answer {
+        padding: 0 14px 14px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .treatment-detail-booking-card {
+        position: static;
+        gap: 12px;
+        padding: 20px;
+    }
+}
+
+
+.patient-form {
+    max-width: 680px;
+    padding: 28px;
+    border: 1px solid #e1e8e5;
+    border-radius: 12px;
+    background: #f8fbf9;
+    box-shadow: 0 10px 30px rgba(38, 55, 70, 0.08);
+}
+
+
+.patient-form-field {
+    margin-bottom: 17px;
+}
+
+
+.patient-form-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #4b5b61;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.patient-form-field input,
+.patient-form-field textarea,
+.patient-form-field select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #d8dfe2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #263746;
+    font: inherit;
+    outline: none;
+}
+
+
+.patient-form-field input,
+.patient-form-field select {
+    min-height: 46px;
+}
+
+
+.patient-form-field textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+
+.patient-form-field input:focus,
+.patient-form-field textarea:focus,
+.patient-form-field select:focus {
+    border-color: #258b50;
+    box-shadow: 0 0 0 3px rgba(37, 139, 80, 0.10);
+}
+
+
+.patient-form .errorlist {
+    margin: 5px 0 0;
+    padding: 0;
+    list-style: none;
+    color: #b42318;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+.patient-form-submit {
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: 8px;
+    background: #258b50;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+
+.patient-form-submit:hover {
+    background: #1d7041;
+    transform: translateY(-1px);
+}
+
+
+/* ========================================
    MOBILE
    ======================================== */
 
 @media (max-width: 600px) {
 
     .appointment-overlay {
-        padding: 15px;
+        padding-right: 12px;
+        padding-left: 12px;
     }
 
     .appointment-modal {
-        padding: 30px 20px 22px;
-
-        max-height: 92vh;
+        padding: 44px 20px 24px;
     }
 
     .appointment-modal h2 {
@@ -1309,10 +1798,38 @@ a {
         width: 65px;
         height: 65px;
 
-        margin-top: -58px;
+        margin-top: 0;
 
         font-size: 26px;
     }
 
 }
 
+
+
+/* Appointment Booking problem text area */
+.appointment-field textarea {
+    width: 100%;
+    min-height: 88px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #d8dfe2;
+    border-radius: 7px;
+
+    background: #ffffff;
+    color: #263746;
+
+    font-size: 14px;
+    line-height: 1.4;
+
+    resize: vertical;
+    outline: none;
+}
+
+.appointment-field textarea:focus {
+    border-color: #258b50;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 139, 80, 0.10);
+}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/contact.css' %}?v=20261013-1">
+{% endblock %}
+
+{% block content %}
+<section class="contact-hero">
+    <div class="contact-hero-content">
+        <span class="contact-label">BOOKING STATUS</span>
+        <h1>Check Your <span>Appointment</span></h1>
+        <p>
+            Enter the booking number from your confirmation message
+            and the phone number used when you booked.
+        </p>
+    </div>
+</section>
+
+<section class="contact-section">
+    <div class="contact-wrapper booking-status-wrapper">
+        <div class="contact-form-card">
+            <h2>Find a booking</h2>
+            <p>Your booking number looks like PT-00012.</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="contact-message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="contact-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="booking-number">Booking number</label>
+                    <input id="booking-number" class="form-input" type="text" name="booking_number" value="{{ form_data.booking_number }}" placeholder="PT-00012" autocomplete="off" required>
+                </div>
+                <div class="form-group">
+                    <label for="booking-phone">Phone number</label>
+                    <input id="booking-phone" class="form-input" type="tel" name="phone_number" value="{{ form_data.phone_number }}" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" minlength="10" required>
+                </div>
+                <button type="submit" class="contact-submit">
+                    Check status
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+
+        {% if booking %}
+            <div class="contact-info booking-status-result">
+                <span class="section-tag">{{ booking.booking_number }}</span>
+                <h2>{{ booking.full_name }}</h2>
+                <p class="contact-description">
+                    Current status:
+                    <strong>{{ booking.get_status_display }}</strong>
+                </p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fa-solid fa-hand-holding-medical"></i></div>
+                        <div>
+                            <h3>Requested care</h3>
+                            <p>{{ booking.treatment.name|default:'Not specified' }}</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+                        <div>
+                            <h3>Location</h3>
+                            <p>{{ booking.location.name|default:'Not specified' }}</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                        <div>
+                            <h3>Appointment</h3>
+                            {% if booking.appointment_date %}
+                                <p>{{ booking.appointment_date|date:'D, d M Y' }}{% if booking.appointment_time %} at {{ booking.appointment_time|time:'g:i A' }}{% endif %}</p>
+                            {% else %}
+                                <p>Waiting for the clinic to confirm a date and time.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if latest_bill %}
+                        <div class="contact-item">
+                            <div class="contact-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div>
+                                <h3>Latest bill</h3>
+                                <p>{{ latest_bill.bill_number }} · ₹{{ latest_bill.amount }} · {{ latest_bill.get_status_display }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

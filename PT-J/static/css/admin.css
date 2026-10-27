@@ -1,0 +1,27 @@
+.messagelist {
+    position: fixed;
+    z-index: 2000;
+    top: 88px;
+    right: 20px;
+    width: min(420px, calc(100vw - 40px));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.messagelist li {
+    margin: 0 0 8px;
+    padding: 14px 18px;
+    border: 1px solid #dce6e0;
+    border-left: 4px solid #19704d;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(29, 63, 48, 0.18);
+    color: #203b34;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.messagelist li.error {
+    border-left-color: #b42318;
+}

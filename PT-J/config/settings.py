@@ -11,21 +11,69 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-d-_hs9!d648s9grk8+ufm9q)mb1t1w1lkz*rupa(jn4i0!1osy'
+DJANGO_ENV = os.environ.get('DJANGO_ENV', 'development').strip().lower()
+if DJANGO_ENV not in {'development', 'test', 'production'}:
+    raise ImproperlyConfigured('DJANGO_ENV must be development, test, or production.')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = DJANGO_ENV != 'production' and os.environ.get(
+    'DJANGO_DEBUG', 'true'
+).strip().lower() in {'1', 'true', 'yes', 'on'}
 
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'dev-only-insecure-key-do-not-use-in-production'
+    else:
+        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY to a unique secret value.')
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+]
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', '.trycloudflare.com', *ALLOWED_HOSTS]
+elif not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS:
+    raise ImproperlyConfigured('Set DJANGO_ALLOWED_HOSTS to the exact production hostnames.')
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.append('https://*.trycloudflare.com')
+elif not CSRF_TRUSTED_ORIGINS:
+    raise ImproperlyConfigured('Set DJANGO_CSRF_TRUSTED_ORIGINS to the exact HTTPS origin.')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = int(os.environ.get(
+    'DJANGO_HSTS_SECONDS', '0' if DEBUG else '31536000'
+))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get(
+    'DJANGO_HSTS_INCLUDE_SUBDOMAINS', 'false'
+).strip().lower() in {'1', 'true', 'yes', 'on'}
+SECURE_HSTS_PRELOAD = os.environ.get(
+    'DJANGO_HSTS_PRELOAD', 'false'
+).strip().lower() in {'1', 'true', 'yes', 'on'}
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
 
 
 # Application definition
@@ -46,9 +94,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'app1.middleware.AdminOTPRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+if not DEBUG:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'config.urls'
 
@@ -62,6 +113,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app1.context_processors.treatment_navigation',
+                'app1.context_processors.web_contacts',
             ],
         },
     },
@@ -73,12 +126,30 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    database_url = os.environ.get('DATABASE_URL', '').strip()
+    if not database_url:
+        raise ImproperlyConfigured('Set DATABASE_URL to a persistent production database.')
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.parse(
+                database_url,
+                conn_max_age=600,
+                ssl_require=True,
+            ),
+        }
+    except ImportError as error:
+        raise ImproperlyConfigured('Install production requirements before using DATABASE_URL.') from error
+    if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+        raise ImproperlyConfigured('SQLite is not supported for production deployment.')
 
 
 # Password validation
@@ -115,19 +186,74 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage'
+            if DEBUG
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
+    },
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND') or (
+    'django.core.mail.backends.console.EmailBackend'
+    if DEBUG and not EMAIL_HOST
+    else 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+WHATSAPP_DEFAULT_COUNTRY_CODE = os.environ.get('WHATSAPP_DEFAULT_COUNTRY_CODE', '91').lstrip('+')
+WHATSAPP_ENABLED = os.environ.get('WHATSAPP_ENABLED', 'false').strip().lower() in {'1', 'true', 'yes', 'on'}
+WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_TOKEN', '').strip()
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '').strip()
+WHATSAPP_DOCTOR_NUMBER = ''.join(
+    digit for digit in os.environ.get('WHATSAPP_DOCTOR_NUMBER', '')
+    if digit.isdigit()
+)
+WHATSAPP_DOCTOR_NAME = os.environ.get('WHATSAPP_DOCTOR_NAME', '').strip()
+WHATSAPP_APPOINTMENT_TEMPLATE = os.environ.get(
+    'WHATSAPP_APPOINTMENT_TEMPLATE', 'appointment_notification'
+).strip()
+WHATSAPP_PATIENT_APPOINTMENT_TEMPLATE = os.environ.get(
+    'WHATSAPP_PATIENT_APPOINTMENT_TEMPLATE', ''
+).strip()
+WHATSAPP_PATIENT_BILL_TEMPLATE = os.environ.get(
+    'WHATSAPP_PATIENT_BILL_TEMPLATE', ''
+).strip()
+WHATSAPP_TEMPLATE_LANGUAGE = os.environ.get(
+    'WHATSAPP_TEMPLATE_LANGUAGE', 'en'
+).strip()
+WHATSAPP_API_VERSION = os.environ.get('WHATSAPP_API_VERSION', 'v23.0').strip()
+WHATSAPP_WEBHOOK_VERIFY_TOKEN = os.environ.get('WHATSAPP_WEBHOOK_VERIFY_TOKEN', '').strip()
+WHATSAPP_APP_SECRET = os.environ.get('WHATSAPP_APP_SECRET', '').strip()
+BILLING_CURRENCY = os.environ.get('BILLING_CURRENCY', 'INR')
+if not DEBUG and (
+    EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend'
+    or not EMAIL_HOST
+    or not EMAIL_HOST_USER
+    or not EMAIL_HOST_PASSWORD
+    or not DEFAULT_FROM_EMAIL
+):
+    raise ImproperlyConfigured('Configure production SMTP settings for appointment and login emails.')

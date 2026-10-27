@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/doctor.css' %}?v=20261015-4">
+{% endblock %}
+
+{% block appointment_feedback %}{% endblock %}
+
+{% block content %}
+<section class="doctor-portal doctor-catalog-page doctor-bookings-page">
+    <header class="doctor-booking-page-header">
+        <div>
+            <p class="doctor-eyebrow">Doctor workspace</p>
+            <h1>Patient bookings</h1>
+            <p>Review requests, contact patients, and manage appointment progress.</p>
+        </div>
+        <nav class="doctor-booking-page-actions" aria-label="Doctor workspace links">
+            <a href="{% url 'doctor_catalog' %}" class="doctor-secondary-link"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Clinic catalog</a>
+            <a href="{% url 'doctor_whatsapp_inbox' %}" class="doctor-secondary-link"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp messages</a>
+        </nav>
+    </header>
+
+    {% if messages %}
+        <div class="doctor-feedback" role="status" aria-live="polite">
+            {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="doctor-booking-sheet" aria-labelledby="agenda-heading">
+        <header class="doctor-booking-heading">
+            <div>
+                <p class="doctor-eyebrow">Booking overview</p>
+                <h2 id="agenda-heading">{% if status_filter == 'unscheduled' %}Needs scheduling{% elif status_filter == 'scheduled' %}Scheduled bookings{% elif status_filter == 'completed' %}Completed bookings{% elif status_filter == 'cancelled' %}Cancelled bookings{% else %}{{ period_label }}{% endif %}</h2>
+                <p>{{ booking_count }} booking{{ booking_count|pluralize }}{% if search %} matching “{{ search }}”{% endif %}</p>
+            </div>
+            {% if period == 'day' or period == 'week' or period == 'month' %}
+                <form method="get" class="doctor-date-picker">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    {% if status_filter != 'all' %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+                    {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <label for="agenda-date">Go to date</label>
+                    <input id="agenda-date" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                    <button type="submit">Apply</button>
+                </form>
+            {% endif %}
+        </header>
+
+        <div class="doctor-booking-control-panel">
+            <div class="doctor-booking-control-group">
+                <p class="doctor-booking-control-label">Date range</p>
+                <nav class="doctor-period-tabs" aria-label="Filter bookings by date range">
+                    <a href="?period=day&date={{ selected_date|date:'Y-m-d' }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}" class="{% if period == 'day' %}is-active{% endif %}" {% if period == 'day' %}aria-current="page"{% endif %}>Day</a>
+                    <a href="?period=week&date={{ selected_date|date:'Y-m-d' }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}" class="{% if period == 'week' %}is-active{% endif %}" {% if period == 'week' %}aria-current="page"{% endif %}>Week</a>
+                    <a href="?period=month&date={{ selected_date|date:'Y-m-d' }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}" class="{% if period == 'month' %}is-active{% endif %}" {% if period == 'month' %}aria-current="page"{% endif %}>Month</a>
+                    <a href="?period=all{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}" class="{% if period == 'all' or period == 'unscheduled' %}is-active{% endif %}" {% if period == 'all' or period == 'unscheduled' %}aria-current="page"{% endif %}>Any date</a>
+                </nav>
+            </div>
+            {% if period != 'unscheduled' %}
+                <div class="doctor-booking-control-group">
+                    <p class="doctor-booking-control-label">Booking status</p>
+                    <p class="doctor-booking-control-hint">Counts reflect the selected date range and search.</p>
+                    <nav class="doctor-booking-filters doctor-status-summary" aria-label="Filter bookings by status">
+                        <a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}&status=all" class="{% if status_filter == 'all' %}is-active{% endif %}" {% if status_filter == 'all' %}aria-current="page"{% endif %}><span class="doctor-filter-dot dot-all"></span><span>All bookings</span><strong>{{ status_counts.all }}</strong></a>
+                        <a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}&status=unscheduled" class="{% if status_filter == 'unscheduled' %}is-active{% endif %}" {% if status_filter == 'unscheduled' %}aria-current="page"{% endif %}><span class="doctor-filter-dot dot-new"></span><span>Needs scheduling</span><strong>{{ status_counts.unscheduled }}</strong></a>
+                        <a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}&status=scheduled" class="{% if status_filter == 'scheduled' %}is-active{% endif %}" {% if status_filter == 'scheduled' %}aria-current="page"{% endif %}><span class="doctor-filter-dot dot-scheduled"></span><span>Scheduled</span><strong>{{ status_counts.scheduled }}</strong></a>
+                        <a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}&status=completed" class="{% if status_filter == 'completed' %}is-active{% endif %}" {% if status_filter == 'completed' %}aria-current="page"{% endif %}><span class="doctor-filter-dot dot-completed"></span><span>Completed</span><strong>{{ status_counts.completed }}</strong></a>
+                        <a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}&sort={{ sort }}&status=cancelled" class="{% if status_filter == 'cancelled' %}is-active{% endif %}" {% if status_filter == 'cancelled' %}aria-current="page"{% endif %}><span class="doctor-filter-dot dot-cancelled"></span><span>Cancelled</span><strong>{{ status_counts.cancelled }}</strong></a>
+                    </nav>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="doctor-booking-toolbar">
+            <p>Showing {{ booking_rows|length }} of {{ booking_count }}</p>
+            <form method="get" class="doctor-booking-search">
+                <input type="hidden" name="period" value="{{ period }}">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                {% if period == 'day' or period == 'week' or period == 'month' %}<input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">{% endif %}
+                <label class="visually-hidden" for="booking-search">Search patient bookings</label>
+                <input id="booking-search" type="search" name="q" value="{{ search }}" placeholder="Name, phone, PT-00027, care, or email">
+                <label for="booking-sort" class="doctor-sort-label">Sort</label>
+                <select id="booking-sort" name="sort" aria-label="Sort bookings">
+                    <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+                    <option value="upcoming" {% if sort == 'upcoming' %}selected{% endif %}>Appointment date</option>
+                    <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Newest request</option>
+                    <option value="patient" {% if sort == 'patient' %}selected{% endif %}>Patient name</option>
+                </select>
+                <button type="submit" aria-label="Apply booking search and sort"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
+                {% if search %}<a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}&status={{ status_filter }}&sort={{ sort }}">Clear</a>{% endif %}
+            </form>
+        </div>
+
+        <div class="doctor-booking-list">
+            {% for row in booking_rows %}
+                <article class="doctor-booking-card">
+                    <div class="doctor-booking-card-main">
+                        <div class="doctor-booking-card-heading">
+                            <div>
+                                <p class="doctor-booking-reference">{{ row.booking.booking_number }}</p>
+                                <h3>{{ row.booking.full_name }}</h3>
+                            </div>
+                            <span class="doctor-status-badge status-{{ row.booking.status }}">{{ row.booking.get_status_display }}</span>
+                        </div>
+
+                        <div class="doctor-booking-contact">
+                            <a href="tel:{{ row.booking.phone_number }}"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ row.booking.phone_number }}</a>
+                            <a href="mailto:{{ row.booking.email }}"><i class="fa-regular fa-envelope" aria-hidden="true"></i> {{ row.booking.email }}</a>
+                        </div>
+
+                        <dl class="doctor-booking-facts">
+                            <div>
+                                <dt>Appointment</dt>
+                                <dd>{% if row.booking.appointment_date %}{% if row.booking.status == 'scheduled' and row.booking.appointment_date < today %}<span class="doctor-booking-follow-up">Follow-up needed</span>{% elif row.booking.status == 'scheduled' and row.booking.appointment_date == today %}<span class="doctor-booking-today">Today</span>{% endif %}{{ row.booking.appointment_date|date:'D, d M Y' }}{% if row.booking.appointment_time %} · {{ row.booking.appointment_time|time:'g:i A' }}{% else %} · Time not set{% endif %}{% else %}<span class="doctor-booking-needs-schedule">Needs scheduling</span>{% endif %}</dd>
+                            </div>
+                            <div>
+                                <dt>Request received</dt>
+                                <dd>{{ row.booking.created_at|date:'d M Y, g:i A' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Requested care</dt>
+                                <dd>{{ row.booking.treatment.name|default:'Not selected' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Location</dt>
+                                <dd>{{ row.booking.location.name|default:'Not selected' }}</dd>
+                            </div>
+                        </dl>
+
+                        {% if row.booking.problems %}
+                            <p class="doctor-booking-notes"><strong>Patient note:</strong> {{ row.booking.problems|truncatechars:150 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <footer class="doctor-booking-card-footer">
+                        <div class="doctor-booking-meta">
+                            <span class="doctor-booking-meta-item">
+                                <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                                {% if row.whatsapp_notification %}
+                                    Alert {{ row.whatsapp_notification.get_status_display|lower }}
+                                    {% if row.whatsapp_notification.status == 'sent' %}<span class="doctor-booking-meta-hint">Template sent</span>{% elif row.whatsapp_notification.last_reason %}<span class="doctor-booking-meta-hint">{{ row.whatsapp_notification.last_reason|cut:'_'|capfirst }}</span>{% endif %}
+                                {% else %}Alert not recorded{% endif %}
+                            </span>
+                            <span class="doctor-booking-meta-item">
+                                <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+                                {% if row.bill %}<a href="{% url 'doctor_bill_detail' row.bill.pk %}">{{ row.bill.bill_number }}</a>{% else %}No bill{% endif %}
+                            </span>
+                            {% if row.booking.whatsapp_consent %}<span class="doctor-booking-consent"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Patient opted in</span>{% endif %}
+                        </div>
+                        <div class="doctor-booking-actions">
+                            <a class="doctor-booking-open" href="{% url 'doctor_booking_detail' row.booking.pk %}">Manage booking <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                            {% if not row.bill %}
+                                <form method="post" action="{% url 'doctor_bookings' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" onsubmit="return confirm('Permanently delete booking {{ row.booking.booking_number }}? This cannot be undone.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_booking">
+                                    <input type="hidden" name="booking_id" value="{{ row.booking.pk }}">
+                                    <button type="submit" class="doctor-booking-delete"><i class="fa-regular fa-trash-can" aria-hidden="true"></i> Delete</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </footer>
+                </article>
+            {% empty %}
+                <div class="doctor-booking-empty-state">
+                    <span class="doctor-booking-empty-icon"><i class="fa-regular fa-calendar-xmark" aria-hidden="true"></i></span>
+                    <h3>{% if search %}No matching bookings{% else %}No bookings in this view{% endif %}</h3>
+                    <p>{% if search %}No bookings in this view. Try a different name, phone number, care type, or booking ID.{% else %}Choose another date range or check the unscheduled list.{% endif %}</p>
+                    {% if search %}<a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}&status={{ status_filter }}">Clear search</a>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if bookings.has_other_pages %}
+            <nav class="doctor-booking-pagination" aria-label="Booking pages">
+                {% if bookings.has_previous %}<a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}&status={{ status_filter }}&sort={{ sort }}&q={{ search|urlencode }}&page={{ bookings.previous_page_number }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Previous</a>{% else %}<span></span>{% endif %}
+                <span>Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span>
+                {% if bookings.has_next %}<a href="?period={{ period }}{% if period == 'day' or period == 'week' or period == 'month' %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}&status={{ status_filter }}&sort={{ sort }}&q={{ search|urlencode }}&page={{ bookings.next_page_number }}">Next <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% else %}<span></span>{% endif %}
+            </nav>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}\n
